@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Progression</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Progression">
+<meta name="theme-color" content="#0a1420">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+
+<style>
+  :root{
+    --bg: #0a1420;
+    --panel: #10192a;
+    --panel-2: #141f34;
+    --line: #223049;
+    --text: #eef2f8;
+    --muted: #8b98b3;
+    --amber: #e8a33d;
+    --amber-2: #f2b64d;
+    --green: #4fca82;
+    --red: #e2645e;
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro Text", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 500px at 50% -10%, #16233b 0%, transparent 60%),
+      var(--bg);
+  }
+
+  .wrap { max-width: 640px; margin: 0 auto; padding: 18px 18px 60px; }
+
+  header.app-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 2px 22px;
+  }
+  header.app-header img { width: 40px; height: 40px; border-radius: 11px; }
+  header.app-header .titles h1 { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: -0.01em; }
+  header.app-header .titles p { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); letter-spacing: 0.02em; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 0 0 12px;
+  }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+  .chip {
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .chip.active { background: linear-gradient(180deg, var(--amber-2), var(--amber)); color: #201200; border-color: transparent; }
+
+  label.field-label { display: block; font-size: 13px; color: var(--muted); margin: 16px 0 8px; font-weight: 600; }
+  label.field-label:first-of-type { margin-top: 4px; }
+
+  input[type="text"], input[type="number"], input[type="date"] {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 17px;
+    padding: 13px 14px;
+    font-weight: 600;
+    font-family: inherit;
+    color-scheme: dark;
+  }
+  input:focus { outline: none; border-color: var(--amber); }
+  input::placeholder { color: #5c6a86; font-weight: 500; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .seg {
+    display: flex;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .seg button {
+    flex: 1; border: none; background: transparent; color: var(--muted);
+    padding: 10px 8px; font-size: 14px; font-weight: 700; border-radius: 9px; font-family: inherit;
+  }
+  .seg button.active { background: var(--amber); color: #201200; }
+
+  .unit-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .stepper { display: flex; align-items: center; gap: 10px; }
+  .stepper input { text-align: center; }
+  .stepper button {
+    width: 46px; height: 46px; flex: none; border-radius: 12px;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--amber);
+    font-size: 20px; font-weight: 700; font-family: inherit;
+  }
+  .stepper button:active { background: var(--line); }
+
+  .primary-btn {
+    width: 100%; margin-top: 20px; padding: 15px; border: none; border-radius: 14px;
+    background: linear-gradient(180deg, var(--amber-2), var(--amber));
+    color: #201200; font-size: 16px; font-weight: 800; font-family: inherit; letter-spacing: 0.01em;
+  }
+  .primary-btn:active { filter: brightness(0.94); }
+  .primary-btn.ghost {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+  }
+
+  /* today hero */
+  .today-hero {
+    background: linear-gradient(160deg, #24304a, #172033);
+    border: 1px solid #33456a;
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+  .today-hero .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .today-hero .label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #9fb2d9; }
+  .today-hero .date-badge { font-size: 11px; color: #9fb2d9; background: rgba(255,255,255,0.06); padding: 4px 9px; border-radius: 999px; font-weight: 700; }
+  .today-hero .value { font-size: 38px; font-weight: 800; color: #fff; letter-spacing: -0.02em; line-height: 1; }
+  .today-hero .value span { font-size: 19px; color: #9fb2d9; margin-left: 6px; font-weight: 700; }
+  .today-hero .sub { margin-top: 6px; font-size: 12.5px; color: #9fb2d9; }
+  .today-hero.not-started { opacity: 0.85; }
+
+  /* final result hero */
+  .result-hero {
+    background: linear-gradient(160deg, #1c4a34, #123526);
+    border: 1px solid #2c6448;
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .result-hero .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .result-hero .label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #8fe0b5; }
+  .result-hero .tag { font-size: 11px; color: #8fe0b5; background: rgba(255,255,255,0.06); padding: 4px 9px; border-radius: 999px; font-weight: 700; }
+  .result-hero .value { font-size: 46px; font-weight: 800; color: #fff; letter-spacing: -0.02em; line-height: 1; }
+  .result-hero .value span { font-size: 22px; color: #8fe0b5; margin-left: 6px; font-weight: 700; }
+  .result-hero .sub { margin-top: 8px; font-size: 13px; color: #a9e8c5; }
+
+  .stairs { display: flex; align-items: flex-end; gap: 3px; height: 64px; margin-top: 16px; }
+  .stairs .bar { flex: 1; background: linear-gradient(180deg, var(--amber-2), var(--amber)); border-radius: 3px 3px 0 0; min-height: 4px; }
+
+  table.periods { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.periods th {
+    text-align: left; color: var(--muted); font-weight: 700; font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 0 4px 10px; border-bottom: 1px solid var(--line);
+  }
+  table.periods td { padding: 11px 4px; border-bottom: 1px solid var(--line); font-weight: 600; }
+  table.periods tr:last-child td { border-bottom: none; }
+  table.periods tr.is-today td { background: rgba(232,163,61,0.08); }
+  table.periods td.n { color: var(--muted); font-weight: 600; }
+  table.periods td.n .today-pill {
+    display: inline-block; margin-left: 6px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em;
+    color: #201200; background: var(--amber); padding: 2px 6px; border-radius: 999px; vertical-align: middle;
+  }
+  table.periods td.date { color: var(--muted); font-size: 12px; }
+  table.periods td.val { text-align: right; font-weight: 800; font-size: 15px; }
+
+  .saved-item { padding: 14px 4px; border-bottom: 1px solid var(--line); }
+  .saved-item:last-child { border-bottom: none; }
+  .saved-item .row-top { display: flex; align-items: center; justify-content: space-between; }
+  .saved-item .info h3 { margin: 0 0 3px; font-size: 15px; font-weight: 700; }
+  .saved-item .info p { margin: 0; font-size: 12.5px; color: var(--muted); }
+  .saved-item .actions { display: flex; gap: 8px; align-items: center; flex: none; }
+  .saved-item .goto {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--amber);
+    font-weight: 700; font-size: 13px; padding: 8px 12px; border-radius: 10px; font-family: inherit;
+  }
+  .saved-item .del { background: transparent; border: none; color: var(--red); font-size: 19px; padding: 6px 8px; font-family: inherit; }
+
+  .empty-note { color: var(--muted); font-size: 13.5px; text-align: center; padding: 10px 4px 4px; }
+
+  .footnote { text-align: center; color: #4c5875; font-size: 11.5px; margin-top: 8px; line-height: 1.6; }
+
+  /* journal */
+  .journal-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 4px; border-bottom: 1px solid var(--line); gap: 10px;
+  }
+  .journal-row:last-child { border-bottom: none; }
+  .journal-row .jd { font-size: 12.5px; color: var(--muted); min-width: 78px; }
+  .journal-row .jv { font-weight: 800; font-size: 15px; flex: 1; }
+  .journal-row .jdelta { font-size: 12.5px; font-weight: 700; }
+  .journal-row .jdelta.good { color: var(--green); }
+  .journal-row .jdelta.bad { color: var(--red); }
+  .journal-row .jdel { background: transparent; border: none; color: #5c6a86; font-size: 17px; padding: 4px 6px; font-family: inherit; }
+
+  .journal-add { display: flex; gap: 8px; margin-top: 12px; }
+  .journal-add input { flex: 1; }
+  .journal-add button {
+    flex: none; width: 52px; border: none; border-radius: 12px;
+    background: linear-gradient(180deg, var(--amber-2), var(--amber)); color: #201200; font-size: 20px; font-weight: 800; font-family: inherit;
+  }
+
+  .save-required { color: var(--muted); font-size: 13px; text-align: center; padding: 6px 4px; }
+
+  /* shortcut / import */
+  .shortcut-box {
+    background: var(--panel-2); border: 1px dashed var(--line); border-radius: 14px; padding: 14px; margin-top: 10px;
+  }
+  .shortcut-box .link-row { display: flex; gap: 8px; align-items: center; }
+  .shortcut-box code {
+    flex: 1; display: block; font-size: 11.5px; color: var(--amber); background: #0d1526;
+    padding: 9px 10px; border-radius: 9px; overflow-x: auto; white-space: nowrap;
+  }
+  .shortcut-box .copy-btn {
+    flex: none; border: none; border-radius: 9px; background: var(--line); color: var(--text);
+    font-size: 12.5px; font-weight: 700; padding: 9px 12px; font-family: inherit;
+  }
+  details.howto { margin-top: 10px; }
+  details.howto summary { color: var(--amber); font-size: 12.5px; font-weight: 700; cursor: pointer; }
+  details.howto ol { margin: 10px 0 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; line-height: 1.7; }
+  details.howto li b { color: var(--text); }
+
+  /* toast */
+  #toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px);
+    background: #1c4a34; border: 1px solid #2c6448; color: #eafff2;
+    padding: 12px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 700;
+    opacity: 0; pointer-events: none; transition: all 0.25s ease;
+    max-width: 90%; text-align: center; z-index: 50;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  ::selection { background: var(--amber); color: #201200; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="app-header">
+    <img src="icon-192.png" alt="">
+    <div class="titles">
+      <h1>Progression</h1>
+      <p>Fixe un départ, une cadence, regarde où ça mène</p>
+    </div>
+  </header>
+
+  <!-- FORM -->
+  <div class="card">
+    <p class="eyebrow">Activité</p>
+    <div class="chip-row" id="activityChips"></div>
+    <input type="text" id="customActivity" placeholder="Nom de l'activité (ex : tractions)" style="display:none; margin-top:10px;">
+
+    <label class="field-label">Valeur de départ</label>
+    <div class="row2">
+      <input type="number" id="startValue" inputmode="decimal" placeholder="10" value="10">
+      <div class="seg" id="startUnitSeg">
+        <button data-v="reps" class="active">reps</button>
+        <button data-v="min">min</button>
+        <button data-v="km">km</button>
+      </div>
+    </div>
+
+    <label class="field-label">Date de départ</label>
+    <input type="date" id="startDate">
+
+    <label class="field-label">Progression par période</label>
+    <div class="row2">
+      <input type="number" id="pctValue" inputmode="decimal" placeholder="2" value="2">
+      <div class="seg" id="pctDirSeg">
+        <button data-v="1" class="active">+ %</button>
+        <button data-v="-1">− %</button>
+      </div>
+    </div>
+
+    <label class="field-label">Chaque</label>
+    <div class="unit-row" id="unitChips"></div>
+    <input type="text" id="customUnit" placeholder="Nom de la période (ex : cycle de 10 jours)" style="display:none; margin-top:10px;">
+    <input type="number" id="customPeriodDays" placeholder="Durée d'une période, en jours (ex : 10)" style="display:none; margin-top:10px;">
+
+    <label class="field-label">Nombre de périodes</label>
+    <div class="stepper">
+      <button type="button" id="periodsMinus">−</button>
+      <input type="number" id="periodsCount" inputmode="numeric" value="12">
+      <button type="button" id="periodsPlus">+</button>
+    </div>
+
+    <label class="field-label">Arrondi</label>
+    <div class="row2">
+      <div class="seg" id="roundSeg">
+        <button data-v="up" class="active">Supérieur ↑</button>
+        <button data-v="down">Inférieur ↓</button>
+      </div>
+      <div class="seg" id="precSeg">
+        <button data-v="0" class="active">Entier</button>
+        <button data-v="1">1 déc.</button>
+        <button data-v="2">2 déc.</button>
+      </div>
+    </div>
+
+    <button class="primary-btn" id="calcBtn">Calculer la progression</button>
+  </div>
+
+  <!-- RESULT -->
+  <div id="resultSection" style="display:none;">
+
+    <div class="today-hero" id="todayHero">
+      <div class="top-row">
+        <span class="label">Aujourd'hui, tu devrais être à</span>
+        <span class="date-badge" id="todayDateBadge"></span>
+      </div>
+      <div class="value" id="todayValue">0<span id="todayUnitSpan"></span></div>
+      <div class="sub" id="todaySub"></div>
+    </div>
+
+    <div class="result-hero">
+      <div class="top-row">
+        <span class="label" id="resultLabel">Objectif final</span>
+        <span class="tag" id="resultTag">12 mois</span>
+      </div>
+      <div class="value" id="resultValue">0<span id="resultUnitSpan"></span></div>
+      <div class="sub" id="resultSub"></div>
+      <div class="stairs" id="stairs"></div>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Détail période par période</p>
+      <table class="periods">
+        <thead>
+          <tr><th>Période</th><th>Date</th><th style="text-align:right">Valeur</th></tr>
+        </thead>
+        <tbody id="periodsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <p class="eyebrow">Journal — valeurs réelles</p>
+      <div id="journalList"></div>
+      <div id="journalAddWrap">
+        <div class="journal-add">
+          <input type="date" id="journalDate">
+          <input type="number" id="journalValue" inputmode="decimal" placeholder="Valeur">
+          <button type="button" id="journalAddBtn">＋</button>
+        </div>
+      </div>
+      <p class="save-required" id="saveRequiredNote" style="display:none;">Enregistre d'abord ce suivi ci-dessous pour pouvoir y ajouter des entrées de journal.</p>
+
+      <div class="shortcut-box" id="shortcutBox" style="display:none;">
+        <p class="eyebrow" style="margin-bottom:8px;">Import depuis Santé (Raccourci iOS)</p>
+        <div class="link-row">
+          <code id="shortcutLink"></code>
+          <button class="copy-btn" id="copyShortcutBtn">Copier</button>
+        </div>
+        <details class="howto">
+          <summary>Comment créer le Raccourci</summary>
+          <ol>
+            <li>Ouvre l'app <b>Raccourcis</b> → Nouveau raccourci.</li>
+            <li>Ajoute <b>« Obtenir un échantillon Santé »</b> — choisis le type (ex : Distance à la course) et la période (ex : Aujourd'hui).</li>
+            <li>Ajoute <b>« Date actuelle »</b> puis formate-la en <b>AAAA-MM-JJ</b>.</li>
+            <li>Ajoute <b>« Texte »</b> et compose : le lien copié ci-dessus + <b>&value=</b> + la valeur Santé + <b>&at=</b> + la date formatée.</li>
+            <li>Ajoute <b>« Ouvrir les URLs »</b> avec ce texte.</li>
+            <li>Nomme le raccourci et ajoute-le à ton écran d'accueil pour un accès en 1 tap.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <button class="primary-btn" id="saveBtn">Enregistrer ce suivi</button>
+  </div>
+
+  <!-- SAVED -->
+  <div class="card">
+    <p class="eyebrow">Suivis enregistrés</p>
+    <div id="savedList"></div>
+  </div>
+
+  <p class="footnote">Estimation pédagogique — les données restent uniquement sur cet appareil (stockage local). Une app web ne peut pas lire l'app Santé directement ; le Raccourci fait le pont en un tap.</p>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+
+  const ACTIVITIES = [
+    { key: 'flexions', label: 'Flexions', unit: 'reps' },
+    { key: 'pompes',   label: 'Pompes',   unit: 'reps' },
+    { key: 'squats',   label: 'Squats',   unit: 'reps' },
+    { key: 'marche',   label: 'Marche',   unit: 'min' },
+    { key: 'footing',  label: 'Footing',  unit: 'km' },
+    { key: 'gainage',  label: 'Gainage',  unit: 'min' },
+    { key: 'custom',   label: 'Autre…',   unit: 'reps' },
+  ];
+
+  const UNITS = [
+    { key: 'jour',    label: 'jour' },
+    { key: 'semaine', label: 'semaine' },
+    { key: 'mois',    label: 'mois' },
+    { key: 'an',      label: 'an' },
+    { key: 'custom',  label: 'Autre…' },
+  ];
+
+  const UNIT_SUFFIX = { reps: '', min: ' min', km: ' km' };
+  const DAY_MS = 86400000;
+
+  let state = {
+    activity: 'flexions', customActivity: '',
+    startValue: 10, startUnit: 'reps',
+    startDate: todayISO(),
+    pct: 2, pctDir: 1,
+    period: 'mois', customUnit: '', customPeriodDays: 7,
+    periods: 12, round: 'up', precision: 0,
+  };
+
+  let lastResult = null; // active snapshot being displayed
+  let lastResultSavedId = null;
+
+  function todayISO() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function parseISODate(s) { return new Date(s + 'T00:00:00'); }
+  function todayMidnight() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+
+  document.getElementById('startDate').value = state.startDate;
+  document.getElementById('journalDate').value = todayISO();
+
+  // ---------- render chip rows ----------
+  const activityChips = document.getElementById('activityChips');
+  ACTIVITIES.forEach(a => {
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (a.key === state.activity ? ' active' : '');
+    chip.textContent = a.label;
+    chip.addEventListener('click', () => {
+      state.activity = a.key;
+      [...activityChips.children].forEach(c => c.classList.toggle('active', c === chip));
+      document.getElementById('customActivity').style.display = a.key === 'custom' ? 'block' : 'none';
+      if (a.key !== 'custom') {
+        state.startUnit = a.unit;
+        [...document.getElementById('startUnitSeg').children].forEach(b => b.classList.toggle('active', b.dataset.v === a.unit));
+      }
+    });
+    activityChips.appendChild(chip);
+  });
+
+  const unitChips = document.getElementById('unitChips');
+  UNITS.forEach(u => {
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (u.key === state.period ? ' active' : '');
+    chip.textContent = u.label;
+    chip.addEventListener('click', () => {
+      state.period = u.key;
+      [...unitChips.children].forEach(c => c.classList.toggle('active', c === chip));
+      document.getElementById('customUnit').style.display = u.key === 'custom' ? 'block' : 'none';
+      document.getElementById('customPeriodDays').style.display = u.key === 'custom' ? 'block' : 'none';
+    });
+    unitChips.appendChild(chip);
+  });
+
+  function wireSeg(id, onPick) {
+    const el = document.getElementById(id);
+    [...el.children].forEach(btn => {
+      btn.addEventListener('click', () => {
+        [...el.children].forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        onPick(btn.dataset.v);
+      });
+    });
+  }
+  wireSeg('startUnitSeg', v => state.startUnit = v);
+  wireSeg('pctDirSeg', v => state.pctDir = parseInt(v, 10));
+  wireSeg('roundSeg', v => state.round = v);
+  wireSeg('precSeg', v => state.precision = parseInt(v, 10));
+
+  document.getElementById('periodsMinus').addEventListener('click', () => {
+    const inp = document.getElementById('periodsCount');
+    inp.value = Math.max(1, (parseInt(inp.value, 10) || 1) - 1);
+  });
+  document.getElementById('periodsPlus').addEventListener('click', () => {
+    const inp = document.getElementById('periodsCount');
+    inp.value = Math.min(240, (parseInt(inp.value, 10) || 1) + 1);
+  });
+
+  // ---------- date helpers ----------
+  function addPeriods(startDateObj, unitKey, n, customDays) {
+    const d = new Date(startDateObj.getTime());
+    switch (unitKey) {
+      case 'jour': d.setDate(d.getDate() + n); break;
+      case 'semaine': d.setDate(d.getDate() + 7 * n); break;
+      case 'mois': d.setMonth(d.getMonth() + n); break;
+      case 'an': d.setFullYear(d.getFullYear() + n); break;
+      default: d.setDate(d.getDate() + (customDays || 1) * n);
+    }
+    return d;
+  }
+
+  function periodsElapsed(startDateObj, unitKey, customDays, refDateObj) {
+    if (refDateObj < startDateObj) return 0;
+    switch (unitKey) {
+      case 'jour': return Math.floor((refDateObj - startDateObj) / DAY_MS);
+      case 'semaine': return Math.floor((refDateObj - startDateObj) / (DAY_MS * 7));
+      case 'mois': {
+        let months = (refDateObj.getFullYear() - startDateObj.getFullYear()) * 12 + (refDateObj.getMonth() - startDateObj.getMonth());
+        if (refDateObj.getDate() < startDateObj.getDate()) months--;
+        return Math.max(0, months);
+      }
+      case 'an': {
+        let years = refDateObj.getFullYear() - startDateObj.getFullYear();
+        if (refDateObj.getMonth() < startDateObj.getMonth() ||
+            (refDateObj.getMonth() === startDateObj.getMonth() && refDateObj.getDate() < startDateObj.getDate())) years--;
+        return Math.max(0, years);
+      }
+      default: return Math.floor((refDateObj - startDateObj) / (DAY_MS * (customDays || 1)));
+    }
+  }
+
+  function fmtDate(d) {
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  // ---------- math ----------
+  function roundTo(value, mode, precision) {
+    const f = Math.pow(10, precision);
+    if (mode === 'up') return Math.ceil(value * f) / f;
+    return Math.floor(value * f) / f;
+  }
+
+  function valueAfterPeriods(start, pctSigned, n, mode, precision) {
+    let current = start;
+    for (let i = 0; i < n; i++) {
+      current = current * (1 + pctSigned / 100);
+      current = roundTo(current, mode, precision);
+    }
+    return current;
+  }
+
+  function computeSeries(r) {
+    const startDateObj = parseISODate(r.startDate);
+    const series = [{ n: 0, value: r.startValue, date: startDateObj }];
+    let current = r.startValue;
+    for (let i = 1; i <= r.periods; i++) {
+      current = current * (1 + r.pctSigned / 100);
+      current = roundTo(current, r.round, r.precision);
+      series.push({ n: i, value: current, date: addPeriods(startDateObj, r.periodKey, i, r.customPeriodDays) });
+    }
+    return series;
+  }
+
+  function formatNum(v, precision) {
+    return v.toLocaleString('fr-FR', { minimumFractionDigits: precision, maximumFractionDigits: precision });
+  }
+
+  function periodLabelPlural(key, custom) {
+    if (key === 'custom') return custom || 'périodes';
+    const map = { jour: 'jours', semaine: 'semaines', mois: 'mois', an: 'ans' };
+    return map[key] || key;
+  }
+
+  function activityLabel() {
+    if (state.activity === 'custom') return state.customActivity || 'Activité';
+    return ACTIVITIES.find(a => a.key === state.activity).label;
+  }
+
+  // ---------- calculate ----------
+  document.getElementById('calcBtn').addEventListener('click', () => {
+    state.startValue = parseFloat(document.getElementById('startValue').value) || 0;
+    state.pct = Math.abs(parseFloat(document.getElementById('pctValue').value) || 0);
+    state.periods = Math.max(1, Math.min(240, parseInt(document.getElementById('periodsCount').value, 10) || 1));
+    state.customActivity = document.getElementById('customActivity').value.trim();
+    state.customUnit = document.getElementById('customUnit').value.trim();
+    state.customPeriodDays = Math.max(1, parseInt(document.getElementById('customPeriodDays').value, 10) || 7);
+    state.startDate = document.getElementById('startDate').value || todayISO();
+
+    const r = {
+      activityLabel: activityLabel(),
+      startUnit: state.startUnit,
+      startValue: state.startValue,
+      startDate: state.startDate,
+      periodKey: state.period,
+      periodLabel: periodLabelPlural(state.period, state.customUnit),
+      customPeriodDays: state.customPeriodDays,
+      pctSigned: state.pct * state.pctDir,
+      round: state.round,
+      precision: state.precision,
+      periods: state.periods,
+      journal: [],
+    };
+
+    lastResult = r;
+    lastResultSavedId = null;
+    renderResult(r);
+    document.getElementById('resultSection').style.display = 'block';
+    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  function renderResult(r) {
+    r.series = computeSeries(r);
+    const suffix = UNIT_SUFFIX[r.startUnit] || '';
+    const final = r.series[r.series.length - 1].value;
+    const startDateObj = parseISODate(r.startDate);
+    const today = todayMidnight();
+
+    // --- today hero ---
+    const todayHero = document.getElementById('todayHero');
+    if (today < startDateObj) {
+      todayHero.classList.add('not-started');
+      document.getElementById('todayValue').firstChild.textContent = formatNum(r.startValue, r.precision);
+      document.getElementById('todayUnitSpan').textContent = suffix;
+      document.getElementById('todayDateBadge').textContent = 'démarre le ' + fmtDate(startDateObj);
+      document.getElementById('todaySub').textContent = "Le plan n'a pas encore commencé.";
+    } else {
+      todayHero.classList.remove('not-started');
+      const elapsed = periodsElapsed(startDateObj, r.periodKey, r.customPeriodDays, today);
+      const targetToday = valueAfterPeriods(r.startValue, r.pctSigned, elapsed, r.round, r.precision);
+      document.getElementById('todayValue').firstChild.textContent = formatNum(targetToday, r.precision);
+      document.getElementById('todayUnitSpan').textContent = suffix;
+      document.getElementById('todayDateBadge').textContent = fmtDate(today);
+      document.getElementById('todaySub').textContent = elapsed + ' ' + r.periodLabel.replace(/s$/, elapsed > 1 ? 's' : '') + ' écoulé' + (elapsed > 1 ? 's' : '') + ' depuis le ' + fmtDate(startDateObj) + '.';
+    }
+
+    // --- final hero ---
+    document.getElementById('resultLabel').textContent = r.activityLabel + ' — objectif final';
+    document.getElementById('resultTag').textContent = r.periods + ' ' + r.periodLabel;
+    document.getElementById('resultValue').firstChild.textContent = formatNum(final, r.precision);
+    document.getElementById('resultUnitSpan').textContent = suffix;
+    const dirWord = r.pctSigned >= 0 ? 'progression' : 'diminution';
+    document.getElementById('resultSub').textContent =
+      formatNum(r.startValue, r.precision) + suffix + ' le ' + fmtDate(startDateObj) + ', ' +
+      (r.pctSigned >= 0 ? '+' : '') + r.pctSigned.toLocaleString('fr-FR') + '% de ' + dirWord + ' par ' +
+      r.periodLabel.replace(/s$/, '') + ', arrondi à l\'' + (r.round === 'up' ? 'unité supérieure' : 'unité inférieure') +
+      (r.precision > 0 ? ' (' + r.precision + ' décimale' + (r.precision > 1 ? 's' : '') + ')' : '') +
+      ' — atteint le ' + fmtDate(r.series[r.series.length - 1].date) + '.';
+
+    // stairs
+    const stairs = document.getElementById('stairs');
+    stairs.innerHTML = '';
+    const values = r.series.map(p => p.value);
+    const max = Math.max(...values, 0.0001);
+    const min = Math.min(...values, 0);
+    const range = (max - min) || 1;
+    values.forEach((v, i) => {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = (6 + ((v - min) / range) * 58) + 'px';
+      if (i === values.length - 1) bar.style.background = 'linear-gradient(180deg,#8fe0b5,#4fca82)';
+      stairs.appendChild(bar);
+    });
+
+    // table
+    const elapsedForTable = today < startDateObj ? -1 : periodsElapsed(startDateObj, r.periodKey, r.customPeriodDays, today);
+    const body = document.getElementById('periodsBody');
+    body.innerHTML = '';
+    r.series.forEach((row, i) => {
+      const tr = document.createElement('tr');
+      const isToday = row.n === elapsedForTable;
+      if (isToday) tr.classList.add('is-today');
+      const label = i === 0 ? 'Départ' : r.periodLabel.replace(/s$/, '') + ' ' + row.n;
+      tr.innerHTML =
+        '<td class="n">' + label + (isToday ? '<span class="today-pill">auj.</span>' : '') + '</td>' +
+        '<td class="date">' + fmtDate(row.date) + '</td>' +
+        '<td class="val">' + formatNum(row.value, r.precision) + suffix + '</td>';
+      body.appendChild(tr);
+    });
+
+    renderJournal(r);
+    renderShortcutBox(r);
+  }
+
+  function targetAtDate(r, dateObj) {
+    const startDateObj = parseISODate(r.startDate);
+    if (dateObj < startDateObj) return r.startValue;
+    const elapsed = periodsElapsed(startDateObj, r.periodKey, r.customPeriodDays, dateObj);
+    return valueAfterPeriods(r.startValue, r.pctSigned, elapsed, r.round, r.precision);
+  }
+
+  function renderJournal(r) {
+    const suffix = UNIT_SUFFIX[r.startUnit] || '';
+    const list = document.getElementById('journalList');
+    const entries = (r.journal || []).slice().sort((a, b) => b.date.localeCompare(a.date));
+    list.innerHTML = '';
+    if (entries.length === 0) {
+      list.innerHTML = '<p class="empty-note">Aucune entrée pour l\'instant.</p>';
+    } else {
+      const goodDir = r.pctSigned >= 0 ? 1 : -1;
+      entries.forEach(e => {
+        const target = targetAtDate(r, parseISODate(e.date));
+        const delta = e.value - target;
+        const isGood = delta * goodDir >= 0;
+        const row = document.createElement('div');
+        row.className = 'journal-row';
+        row.innerHTML =
+          '<span class="jd">' + fmtDate(parseISODate(e.date)) + '</span>' +
+          '<span class="jv">' + formatNum(e.value, r.precision) + suffix + '</span>' +
+          '<span class="jdelta ' + (isGood ? 'good' : 'bad') + '">' + (delta >= 0 ? '+' : '') + formatNum(delta, r.precision) + suffix + ' vs objectif</span>' +
+          '<button class="jdel" data-id="' + e.id + '">×</button>';
+        row.querySelector('.jdel').addEventListener('click', () => {
+          r.journal = r.journal.filter(j => j.id !== e.id);
+          persistIfSaved(r);
+          renderJournal(r);
+        });
+        list.appendChild(row);
+      });
+    }
+
+    const canJournal = !!lastResultSavedId;
+    document.getElementById('journalAddWrap').style.display = canJournal ? 'flex' : 'none';
+    document.getElementById('saveRequiredNote').style.display = canJournal ? 'none' : 'block';
+  }
+
+  document.getElementById('journalAddBtn').addEventListener('click', () => {
+    if (!lastResult || !lastResultSavedId) return;
+    const date = document.getElementById('journalDate').value || todayISO();
+    const value = parseFloat(document.getElementById('journalValue').value);
+    if (isNaN(value)) return;
+    lastResult.journal = lastResult.journal || [];
+    lastResult.journal.push({ id: Date.now(), date, value });
+    persistIfSaved(lastResult);
+    document.getElementById('journalValue').value = '';
+    renderJournal(lastResult);
+    showToast('Ajouté au journal ✓');
+  });
+
+  function renderShortcutBox(r) {
+    const box = document.getElementById('shortcutBox');
+    if (!lastResultSavedId) { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    const base = location.origin + location.pathname;
+    const link = base + '?tracker=' + lastResultSavedId;
+    document.getElementById('shortcutLink').textContent = link;
+    document.getElementById('copyShortcutBtn').onclick = () => {
+      copyToClipboard(link);
+      showToast('Lien copié ✓');
+    };
+  }
+
+  // ---------- storage ----------
+  const STORAGE_KEY = 'progression_trackers_v2';
+
+  function loadTrackers() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function saveTrackers(list) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
+  }
+  function persistIfSaved(r) {
+    if (!lastResultSavedId) return;
+    const list = loadTrackers();
+    const idx = list.findIndex(t => t.id === lastResultSavedId);
+    if (idx === -1) return;
+    list[idx].snapshot = stripSeries(r);
+    list[idx].summary = summaryFor(r);
+    saveTrackers(list);
+    renderSavedList();
+  }
+  function stripSeries(r) {
+    const copy = Object.assign({}, r);
+    delete copy.series;
+    return copy;
+  }
+  function summaryFor(r) {
+    const suffix = UNIT_SUFFIX[r.startUnit] || '';
+    const final = r.series ? r.series[r.series.length - 1].value : valueAfterPeriods(r.startValue, r.pctSigned, r.periods, r.round, r.precision);
+    return formatNum(r.startValue, r.precision) + suffix + ' → ' + formatNum(final, r.precision) + suffix +
+           ' en ' + r.periods + ' ' + r.periodLabel + ' · depuis le ' + fmtDate(parseISODate(r.startDate));
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    if (!lastResult) return;
+    const list = loadTrackers();
+    const id = lastResultSavedId || Date.now();
+    const entry = {
+      id,
+      name: lastResult.activityLabel,
+      summary: summaryFor(lastResult),
+      snapshot: stripSeries(lastResult),
+      savedAt: new Date().toISOString(),
+    };
+    const idx = list.findIndex(t => t.id === id);
+    if (idx === -1) list.unshift(entry); else list[idx] = entry;
+    saveTrackers(list);
+    lastResultSavedId = id;
+    renderSavedList();
+    renderJournal(lastResult);
+    renderShortcutBox(lastResult);
+    showToast('Suivi enregistré ✓');
+  });
+
+  function openTracker(item) {
+    lastResult = item.snapshot;
+    lastResult.journal = lastResult.journal || [];
+    lastResultSavedId = item.id;
+    renderResult(lastResult);
+    document.getElementById('resultSection').style.display = 'block';
+  }
+
+  function renderSavedList() {
+    const el = document.getElementById('savedList');
+    const list = loadTrackers();
+    el.innerHTML = '';
+    if (list.length === 0) {
+      el.innerHTML = '<p class="empty-note">Aucun suivi enregistré pour l\'instant.</p>';
+      return;
+    }
+    list.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'saved-item';
+      row.innerHTML =
+        '<div class="row-top">' +
+          '<div class="info"><h3>' + item.name + '</h3><p>' + item.summary + '</p></div>' +
+          '<div class="actions"><button class="goto">Ouvrir</button><button class="del">×</button></div>' +
+        '</div>';
+      row.querySelector('.goto').addEventListener('click', () => {
+        openTracker(item);
+        document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      row.querySelector('.del').addEventListener('click', () => {
+        saveTrackers(loadTrackers().filter(t => t.id !== item.id));
+        if (lastResultSavedId === item.id) {
+          lastResultSavedId = null;
+          document.getElementById('resultSection').style.display = 'none';
+        }
+        renderSavedList();
+      });
+      el.appendChild(row);
+    });
+  }
+
+  // ---------- toast ----------
+  let toastTimer = null;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    } else fallbackCopy(text);
+  }
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  // ---------- URL import (from iOS Shortcut) ----------
+  function handleUrlImport() {
+    const params = new URLSearchParams(location.search);
+    const trackerId = params.get('tracker');
+    if (!trackerId) return;
+    const list = loadTrackers();
+    const item = list.find(t => String(t.id) === String(trackerId));
+    if (!item) {
+      showToast('Suivi introuvable pour ce lien');
+      history.replaceState(null, '', location.pathname);
+      return;
+    }
+    openTracker(item);
+    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const value = parseFloat(params.get('value'));
+    if (!isNaN(value)) {
+      const date = params.get('at') || todayISO();
+      lastResult.journal = lastResult.journal || [];
+      lastResult.journal.push({ id: Date.now(), date, value });
+      persistIfSaved(lastResult);
+      renderJournal(lastResult);
+      const suffix = UNIT_SUFFIX[lastResult.startUnit] || '';
+      showToast('Ajouté depuis Raccourci : ' + formatNum(value, lastResult.precision) + suffix + ' le ' + fmtDate(parseISODate(date)));
+    }
+    history.replaceState(null, '', location.pathname);
+  }
+
+  renderSavedList();
+  handleUrlImport();
+
+  // ---------- service worker ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+
+})();
+</script>
+
+</body>
+</html>
