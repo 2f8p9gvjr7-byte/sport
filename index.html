@@ -86,6 +86,16 @@
     font-weight: 600;
   }
   .chip.active { background: linear-gradient(180deg, var(--amber-2), var(--amber)); color: #201200; border-color: transparent; }
+  .chip.custom-chip { position: relative; padding-right: 30px; }
+  .chip.custom-chip .chip-del {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    width: 20px; height: 20px; border-radius: 999px; border: none;
+    background: rgba(0,0,0,0.18); color: inherit; font-size: 13px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; padding: 0; font-family: inherit;
+  }
+  .chip.custom-chip.active .chip-del { background: rgba(0,0,0,0.28); }
+  .chip.add-chip { border-style: dashed; color: var(--amber); }
+  .hint-note { color: var(--muted); font-size: 12px; margin: 8px 2px 0; line-height: 1.5; }
 
   label.field-label { display: block; font-size: 13px; color: var(--muted); margin: 16px 0 8px; font-weight: 600; }
   label.field-label:first-of-type { margin-top: 4px; }
@@ -277,7 +287,11 @@
   <div class="card">
     <p class="eyebrow">Activité</p>
     <div class="chip-row" id="activityChips"></div>
-    <input type="text" id="customActivity" placeholder="Nom de l'activité (ex : tractions)" style="display:none; margin-top:10px;">
+    <div class="row2" id="customAddRow" style="display:none; margin-top:10px;">
+      <input type="text" id="newCustomActivity" placeholder="Nom de l'activité (ex : tractions)">
+      <button type="button" class="primary-btn ghost" style="margin:0;" id="confirmCustomBtn">Ajouter</button>
+    </div>
+    <p class="hint-note" id="customCapNote" style="display:none;">Maximum de 10 activités personnalisées — supprime-en une pour en ajouter une nouvelle.</p>
 
     <label class="field-label">Valeur de départ</label>
     <div class="row2">
@@ -418,8 +432,10 @@
     { key: 'marche',   label: 'Marche',   unit: 'min' },
     { key: 'footing',  label: 'Footing',  unit: 'km' },
     { key: 'gainage',  label: 'Gainage',  unit: 'min' },
-    { key: 'custom',   label: 'Autre…',   unit: 'reps' },
   ];
+
+  const CUSTOM_ACTIVITIES_KEY = 'progression_custom_activities_v1';
+  const MAX_CUSTOM_ACTIVITIES = 10;
 
   const UNITS = [
     { key: 'jour',    label: 'jour' },
@@ -433,7 +449,7 @@
   const DAY_MS = 86400000;
 
   let state = {
-    activity: 'flexions', customActivity: '',
+    activity: 'flexions',
     startValue: 10, startUnit: 'reps',
     startDate: todayISO(),
     pct: 2, pctDir: 1,
@@ -454,22 +470,85 @@
   document.getElementById('startDate').value = state.startDate;
   document.getElementById('journalDate').value = todayISO();
 
+  // ---------- custom activities storage ----------
+  function loadCustomActivities() {
+    try { return JSON.parse(localStorage.getItem(CUSTOM_ACTIVITIES_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function saveCustomActivities(list) {
+    try { localStorage.setItem(CUSTOM_ACTIVITIES_KEY, JSON.stringify(list)); } catch (e) {}
+  }
+  let customActivities = loadCustomActivities();
+
   // ---------- render chip rows ----------
   const activityChips = document.getElementById('activityChips');
-  ACTIVITIES.forEach(a => {
-    const chip = document.createElement('button');
-    chip.className = 'chip' + (a.key === state.activity ? ' active' : '');
-    chip.textContent = a.label;
-    chip.addEventListener('click', () => {
-      state.activity = a.key;
-      [...activityChips.children].forEach(c => c.classList.toggle('active', c === chip));
-      document.getElementById('customActivity').style.display = a.key === 'custom' ? 'block' : 'none';
-      if (a.key !== 'custom') {
+
+  function renderActivityChips() {
+    activityChips.innerHTML = '';
+
+    ACTIVITIES.forEach(a => {
+      const chip = document.createElement('button');
+      chip.className = 'chip' + (state.activity === a.key ? ' active' : '');
+      chip.textContent = a.label;
+      chip.addEventListener('click', () => {
+        state.activity = a.key;
+        document.getElementById('customAddRow').style.display = 'none';
         state.startUnit = a.unit;
         [...document.getElementById('startUnitSeg').children].forEach(b => b.classList.toggle('active', b.dataset.v === a.unit));
-      }
+        renderActivityChips();
+      });
+      activityChips.appendChild(chip);
     });
-    activityChips.appendChild(chip);
+
+    customActivities.forEach(c => {
+      const chip = document.createElement('button');
+      chip.className = 'chip custom-chip' + (state.activity === 'custom:' + c.id ? ' active' : '');
+      chip.innerHTML = c.label + '<span class="chip-del">×</span>';
+      chip.addEventListener('click', (e) => {
+        if (e.target.classList.contains('chip-del')) return;
+        state.activity = 'custom:' + c.id;
+        document.getElementById('customAddRow').style.display = 'none';
+        renderActivityChips();
+      });
+      chip.querySelector('.chip-del').addEventListener('click', (e) => {
+        e.stopPropagation();
+        customActivities = customActivities.filter(x => x.id !== c.id);
+        saveCustomActivities(customActivities);
+        if (state.activity === 'custom:' + c.id) state.activity = 'flexions';
+        renderActivityChips();
+        showToast('Activité supprimée de la liste');
+      });
+      activityChips.appendChild(chip);
+    });
+
+    const capReached = customActivities.length >= MAX_CUSTOM_ACTIVITIES;
+    document.getElementById('customCapNote').style.display = capReached ? 'block' : 'none';
+    if (!capReached) {
+      const addChip = document.createElement('button');
+      addChip.className = 'chip add-chip';
+      addChip.textContent = '＋ Autre';
+      addChip.addEventListener('click', () => {
+        const row = document.getElementById('customAddRow');
+        row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+        if (row.style.display === 'flex') document.getElementById('newCustomActivity').focus();
+      });
+      activityChips.appendChild(addChip);
+    }
+  }
+  renderActivityChips();
+
+  document.getElementById('confirmCustomBtn').addEventListener('click', () => {
+    const input = document.getElementById('newCustomActivity');
+    const name = input.value.trim();
+    if (!name) { showToast('Donne un nom à l\'activité'); return; }
+    if (customActivities.length >= MAX_CUSTOM_ACTIVITIES) { showToast('Maximum de 10 activités personnalisées'); return; }
+    const exists = customActivities.find(c => c.label.toLowerCase() === name.toLowerCase());
+    const entry = exists || { id: Date.now(), label: name };
+    if (!exists) { customActivities.push(entry); saveCustomActivities(customActivities); }
+    state.activity = 'custom:' + entry.id;
+    input.value = '';
+    document.getElementById('customAddRow').style.display = 'none';
+    renderActivityChips();
   });
 
   const unitChips = document.getElementById('unitChips');
@@ -586,8 +665,13 @@
   }
 
   function activityLabel() {
-    if (state.activity === 'custom') return state.customActivity || 'Activité';
-    return ACTIVITIES.find(a => a.key === state.activity).label;
+    if (typeof state.activity === 'string' && state.activity.indexOf('custom:') === 0) {
+      const id = parseInt(state.activity.slice(7), 10);
+      const found = customActivities.find(c => c.id === id);
+      return found ? found.label : 'Activité';
+    }
+    const found = ACTIVITIES.find(a => a.key === state.activity);
+    return found ? found.label : 'Activité';
   }
 
   // ---------- calculate ----------
@@ -595,7 +679,6 @@
     state.startValue = parseFloat(document.getElementById('startValue').value) || 0;
     state.pct = Math.abs(parseFloat(document.getElementById('pctValue').value) || 0);
     state.periods = Math.max(1, Math.min(240, parseInt(document.getElementById('periodsCount').value, 10) || 1));
-    state.customActivity = document.getElementById('customActivity').value.trim();
     state.customUnit = document.getElementById('customUnit').value.trim();
     state.customPeriodDays = Math.max(1, parseInt(document.getElementById('customPeriodDays').value, 10) || 7);
     state.startDate = document.getElementById('startDate').value || todayISO();
