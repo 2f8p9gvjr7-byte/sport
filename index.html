@@ -213,6 +213,16 @@
     font-weight: 700; font-size: 13px; padding: 8px 12px; border-radius: 10px; font-family: inherit;
   }
   .saved-item .del { background: transparent; border: none; color: var(--red); font-size: 19px; padding: 6px 8px; font-family: inherit; }
+  .saved-item .qadd {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--amber);
+    font-weight: 800; font-size: 16px; width: 32px; height: 32px; border-radius: 9px; font-family: inherit;
+  }
+  .quick-journal { display: flex; gap: 8px; margin-top: 10px; }
+  .quick-journal input { flex: 1; }
+  .quick-journal .qj-confirm {
+    flex: none; width: 44px; border: none; border-radius: 10px;
+    background: linear-gradient(180deg, var(--amber-2), var(--amber)); color: #201200; font-size: 18px; font-weight: 800; font-family: inherit;
+  }
 
   .empty-note { color: var(--muted); font-size: 13.5px; text-align: center; padding: 10px 4px 4px; }
 
@@ -880,6 +890,18 @@
   document.getElementById('saveBtn').addEventListener('click', () => {
     if (!lastResult) return;
     const list = loadTrackers();
+
+    if (!lastResultSavedId) {
+      const dup = list.find(t =>
+        t.name.trim().toLowerCase() === lastResult.activityLabel.trim().toLowerCase() &&
+        t.snapshot && t.snapshot.startDate === lastResult.startDate
+      );
+      if (dup) {
+        showToast('Un suivi « ' + dup.name + ' » existe déjà depuis cette date — ouvre-le ci-dessous plutôt que d\'en recréer un.');
+        return;
+      }
+    }
+
     const id = lastResultSavedId || Date.now();
     const entry = {
       id,
@@ -897,6 +919,23 @@
     renderShortcutBox(lastResult);
     showToast('Suivi enregistré ✓');
   });
+
+  function quickAddJournal(item, date, value) {
+    const list = loadTrackers();
+    const idx = list.findIndex(t => t.id === item.id);
+    if (idx === -1) return;
+    const snap = list[idx].snapshot;
+    snap.journal = snap.journal || [];
+    snap.journal.push({ id: Date.now(), date, value });
+    list[idx].snapshot = snap;
+    saveTrackers(list);
+    if (lastResultSavedId === item.id) {
+      lastResult = snap;
+      renderJournal(lastResult);
+    }
+    renderSavedList();
+    showToast('Ajouté au journal ✓ (' + formatNum(value, 0) + ' le ' + fmtDate(parseISODate(date)) + ')');
+  }
 
   function openTracker(item) {
     lastResult = item.snapshot;
@@ -920,7 +959,12 @@
       row.innerHTML =
         '<div class="row-top">' +
           '<div class="info"><h3>' + item.name + '</h3><p>' + item.summary + '</p></div>' +
-          '<div class="actions"><button class="goto">Ouvrir</button><button class="del">×</button></div>' +
+          '<div class="actions"><button class="qadd" title="Ajouter une valeur">＋</button><button class="goto">Ouvrir</button><button class="del">×</button></div>' +
+        '</div>' +
+        '<div class="quick-journal" style="display:none;">' +
+          '<input type="date" class="qj-date">' +
+          '<input type="number" class="qj-value" inputmode="decimal" placeholder="Valeur">' +
+          '<button type="button" class="qj-confirm">✓</button>' +
         '</div>';
       row.querySelector('.goto').addEventListener('click', () => {
         openTracker(item);
@@ -933,6 +977,21 @@
           document.getElementById('resultSection').style.display = 'none';
         }
         renderSavedList();
+      });
+      const qjWrap = row.querySelector('.quick-journal');
+      row.querySelector('.qadd').addEventListener('click', () => {
+        const show = qjWrap.style.display === 'none';
+        qjWrap.style.display = show ? 'flex' : 'none';
+        if (show) {
+          row.querySelector('.qj-date').value = todayISO();
+          row.querySelector('.qj-value').focus();
+        }
+      });
+      row.querySelector('.qj-confirm').addEventListener('click', () => {
+        const date = row.querySelector('.qj-date').value || todayISO();
+        const value = parseFloat(row.querySelector('.qj-value').value);
+        if (isNaN(value)) { showToast('Entre une valeur'); return; }
+        quickAddJournal(item, date, value);
       });
       el.appendChild(row);
     });
