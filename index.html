@@ -356,6 +356,8 @@
   <!-- RESULT -->
   <div id="resultSection" style="display:none;">
 
+    <p class="hint-note" id="linkStatusNote" style="margin:0 0 12px; font-weight:700;"></p>
+
     <div class="today-hero" id="todayHero">
       <div class="top-row">
         <span class="label">Aujourd'hui, tu devrais être à</span>
@@ -708,8 +710,21 @@
       journal: [],
     };
 
+    // Si un suivi enregistré porte déjà ce nom + cette date de départ,
+    // on s'y rattache automatiquement (journal compris) plutôt que de créer
+    // un calcul orphelin — recalculer ne doit jamais faire perdre le journal.
+    const existing = loadTrackers().find(t =>
+      t.name.trim().toLowerCase() === r.activityLabel.trim().toLowerCase() &&
+      t.snapshot && t.snapshot.startDate === r.startDate
+    );
+    if (existing) {
+      r.journal = existing.snapshot.journal || [];
+      lastResultSavedId = existing.id;
+    } else {
+      lastResultSavedId = null;
+    }
+
     lastResult = r;
-    lastResultSavedId = null;
     renderResult(r);
     document.getElementById('resultSection').style.display = 'block';
     document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -721,6 +736,12 @@
     const final = r.series[r.series.length - 1].value;
     const startDateObj = parseISODate(r.startDate);
     const today = todayMidnight();
+
+    const statusNote = document.getElementById('linkStatusNote');
+    statusNote.textContent = lastResultSavedId
+      ? '🔗 Suivi enregistré — ton journal reste rattaché.'
+      : '◦ Calcul non enregistré — tape « Enregistrer ce suivi » pour garder tes valeurs et ton journal.';
+    statusNote.style.color = lastResultSavedId ? 'var(--green)' : 'var(--muted)';
 
     // --- today hero ---
     const todayHero = document.getElementById('todayHero');
